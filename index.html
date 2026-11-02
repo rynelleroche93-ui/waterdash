@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Water AI Monitor And Command Center</title>
+    <title>AquaSense Pro - AI Water Leakage & Localization Command Center</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -31,7 +31,7 @@
                     <i class="fa-solid fa-droplet text-xl"></i>
                 </div>
                 <div>
-                    <h1 id="main-title" class="text-lg font-bold tracking-tight text-slate-100 transition-colors">Water AI Monitor And Command Center</h1>
+                    <h1 id="main-title" class="text-lg font-bold tracking-tight text-slate-100 transition-colors">AquaSense IoT Command Center</h1>
                     <p id="sub-title" class="text-xs text-slate-400">Zone 1 & Zone 2 Real-Time Pipeline Telemetry</p>
                 </div>
             </div>
@@ -84,17 +84,15 @@
             <!-- Dashboard Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                <!-- Left Panel: System Orb Visualizer & Recalibrate / Time Log Button -->
+                <!-- Left Panel: Pure Water Drop Visualizer & Recalibrate / Time Log Button -->
                 <div class="glass-panel p-6 rounded-2xl flex flex-col items-center justify-between text-center border">
                     <div class="w-full">
                         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">State Indicator</h2>
                         <p class="text-xs text-slate-500 mb-6">Autonomous AI & Sensor Health</p>
                         
-                        <!-- Pulsing Orb Container -->
-                        <div class="w-40 h-40 rounded-full neu-pressed mx-auto p-3 flex items-center justify-center mb-6">
-                            <div id="status-orb" class="w-full h-full rounded-full orb-glow-safe transition-all duration-500 bg-gradient-to-tr from-cyan-400 to-neutral-900 flex items-center justify-center">
-                                <i id="orb-icon" class="fa-solid fa-water text-3xl text-slate-950/80"></i>
-                            </div>
+                        <!-- Standalone Borderless Water Drop Icon -->
+                        <div class="w-40 h-40 mx-auto flex items-center justify-center mb-6">
+                            <i id="orb-icon" class="fa-solid fa-droplet text-7xl text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)] animate-pulse"></i>
                         </div>
                         
                         <h3 id="orb-status-text" class="text-xl font-extrabold text-cyan-700 dark:text-cyan-400 tracking-wide">STATUS: NORMAL</h3>

@@ -80,10 +80,6 @@ html.dark header {
     box-shadow: inset 3px 3px 6px #000000, inset -3px -3px 6px #1c1c1c;
     transform: scale(0.98);
 }
-.orb-glow-safe { box-shadow: 0 0 35px rgba(0, 243, 255, 0.3); }
-.orb-glow-danger { box-shadow: 0 0 45px rgba(255, 0, 127, 0.5); }
-.orb-glow-calib { box-shadow: 0 0 35px rgba(243, 156, 18, 0.3); }
-.orb-glow-manual { box-shadow: 0 0 35px rgba(255, 255, 255, 0.15); }
 
 /* 3D Card Flip Animation Utility Classes */
 .perspective-1000 {

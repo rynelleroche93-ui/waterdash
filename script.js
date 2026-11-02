@@ -41,13 +41,9 @@ function switchView(viewName) {
     const logsView = document.getElementById('view-logs');
     const isDark = document.documentElement.classList.contains('dark');
 
-    // Set overlay background color based on active theme
     overlay.style.backgroundColor = isDark ? '#000000' : '#ffffff';
-
-    // Expand circle to fill screen
     overlay.classList.add('expand');
 
-    // Switch view halfway through the animation
     setTimeout(() => {
         if (viewName === 'logs') {
             dashboardView.classList.add('hidden');
@@ -59,7 +55,6 @@ function switchView(viewName) {
         window.scrollTo({ top: 0, behavior: 'instant' });
     }, 350);
 
-    // Shrink circle back
     setTimeout(() => {
         overlay.classList.remove('expand');
     }, 750);
@@ -108,7 +103,7 @@ function renderTimeLogs() {
     tbody.innerHTML = timeLogs.map(log => `
         <tr class="hover:bg-black/5 dark:hover:bg-white/5 transition">
             <td class="p-3 text-slate-500">${log.time}</td>
-            <td class="p-3 font-bold ${log.status.includes('LEAK') ? 'text-rose-500' : 'text-emerald-500'}">${log.type}</td>
+            <td class="p-3 font-bold ${log.status.includes('LEAK') ? 'text-blue-500' : 'text-emerald-500'}">${log.type}</td>
             <td class="p-3 text-cyan-600 dark:text-cyan-400">${log.f1} / ${log.p1}</td>
             <td class="p-3 text-purple-600 dark:text-purple-400">${log.f2} / ${log.p2}</td>
             <td class="p-3 text-slate-700 dark:text-slate-300">${log.status}</td>
@@ -266,21 +261,20 @@ function updateSystemStateUI(status) {
     const bannerIcon = document.getElementById('banner-icon');
     const bannerTitle = document.getElementById('banner-title');
     const bannerDesc = document.getElementById('banner-desc');
-    const orb = document.getElementById('status-orb');
     const orbIcon = document.getElementById('orb-icon');
     const orbText = document.getElementById('orb-status-text');
 
     if (status.includes("LEAK")) {
-        banner.className = "glass-panel p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4 bg-rose-500/10";
-        bannerIconBg.className = "p-3.5 rounded-2xl bg-rose-500/10 text-rose-700 dark:text-rose-500";
+        banner.className = "glass-panel p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4 bg-blue-500/10";
+        bannerIconBg.className = "p-3.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400";
         bannerIcon.className = "fa-solid fa-triangle-exclamation text-2xl";
-        bannerTitle.className = "text-lg font-bold text-rose-700 dark:text-rose-500";
+        bannerTitle.className = "text-lg font-bold text-blue-600 dark:text-blue-400";
         bannerTitle.innerText = "!! LEAK DETECTED ! Shut-off Valve Engaged";
         bannerDesc.innerText = "Significant flow loss differential identified between Zone 1 and Zone 2. System secured automatically.";
         
-        orb.className = "w-full h-full rounded-full orb-glow-danger transition-all duration-500 bg-gradient-to-tr from-rose-500 to-neutral-900 flex items-center justify-center";
-        orbIcon.className = "fa-solid fa-triangle-exclamation text-3xl text-slate-100";
-        orbText.className = "text-xl font-extrabold text-rose-700 dark:text-rose-500 tracking-wide";
+        // Warning Blue Splash Icon (Borderless)
+        orbIcon.className = "fa-solid fa-water text-7xl text-sky-400 drop-shadow-[0_0_25px_rgba(56,189,248,0.8)] animate-bounce";
+        orbText.className = "text-xl font-extrabold text-blue-600 dark:text-blue-400 tracking-wide";
         orbText.innerText = "LEAK DETECTED";
     } 
     else if (status.includes("CALIBRATING")) {
@@ -291,8 +285,7 @@ function updateSystemStateUI(status) {
         bannerTitle.innerText = status;
         bannerDesc.innerText = "Recording baseline downstream flow values. Please keep water flow stable.";
         
-        orb.className = "w-full h-full rounded-full orb-glow-calib transition-all duration-500 bg-gradient-to-tr from-amber-500 to-neutral-900 flex items-center justify-center";
-        orbIcon.className = "fa-solid fa-spinner fa-spin text-3xl text-slate-950/80";
+        orbIcon.className = "fa-solid fa-spinner fa-spin text-7xl text-amber-500 drop-shadow-[0_0_20px_rgba(245,158,11,0.6)]";
         orbText.className = "text-xl font-extrabold text-amber-700 dark:text-amber-500 tracking-wide";
         orbText.innerText = status;
     } 
@@ -304,21 +297,20 @@ function updateSystemStateUI(status) {
         bannerTitle.innerText = status;
         bannerDesc.innerText = "Manual valve override active. Autonomous leak detection suspended for this mode.";
         
-        orb.className = "w-full h-full rounded-full orb-glow-manual transition-all duration-500 bg-gradient-to-tr from-purple-500 to-neutral-900 flex items-center justify-center";
-        orbIcon.className = "fa-solid fa-sliders text-3xl text-slate-100";
+        orbIcon.className = "fa-solid fa-sliders text-7xl text-purple-500 drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]";
         orbText.className = "text-xl font-extrabold text-purple-700 dark:text-purple-400 tracking-wide";
         orbText.innerText = status;
     } 
     else {
         banner.className = "glass-panel p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4";
-        bannerIconBg.className = "p-3.5 rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-400";
+        bannerIconBg.className = "p-3.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400";
         bannerIcon.className = "fa-solid fa-shield-check text-2xl";
         bannerTitle.className = "text-lg font-bold text-cyan-700 dark:text-cyan-400";
         bannerTitle.innerText = "SYSTEM NORMAL";
         bannerDesc.innerText = "Continuous upstream & downstream flow monitoring active. No leaks detected.";
         
-        orb.className = "w-full h-full rounded-full orb-glow-safe transition-all duration-500 bg-gradient-to-tr from-cyan-400 to-neutral-900 flex items-center justify-center";
-        orbIcon.className = "fa-solid fa-water text-3xl text-slate-950/80";
+        // Normal Blue Water Drop Icon (Borderless)
+        orbIcon.className = "fa-solid fa-droplet text-7xl text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)] animate-pulse";
         orbText.className = "text-xl font-extrabold text-cyan-700 dark:text-cyan-400 tracking-wide";
         orbText.innerText = "STATUS: NORMAL";
     }

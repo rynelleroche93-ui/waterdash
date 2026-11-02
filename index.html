@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSense Pro - AI Water Leakage & Localization Command Center</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <!-- Chart.js for Real-Time Telemetry Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-black dark:bg-black text-slate-100 min-h-screen font-sans antialiased selection:bg-slate-700 selection:text-white transition-colors duration-300">
+
+    <!-- Transition Screen Overlay for Center-Outward Fill -->
+    <div id="transition-overlay"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="border-b border-white/10 dark:border-white/10 bg-black/85 backdrop-blur-md sticky top-0 z-50 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/5 dark:bg-white/5 p-2.5 rounded-xl border border-white/10 text-slate-200">
+                    <i class="fa-solid fa-droplet text-xl"></i>
+                </div>
+                <div>
+                    <h1 id="main-title" class="text-lg font-bold tracking-tight text-slate-100 transition-colors">AquaSense IoT Command Center</h1>
+                    <p id="sub-title" class="text-xs text-slate-400">Zone 1 & Zone 2 Real-Time Pipeline Telemetry</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Connection Status Badge -->
+                <div id="conn-badge" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
+                    <span id="conn-dot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span id="conn-text">ESP32 Connected</span>
+                </div>
+                <!-- Light/Dark Mode Toggle Switch -->
+                <button onclick="toggleTheme()" id="theme-toggle" class="btn-neu px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition" title="Toggle Light/Dark Mode">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <!-- OTA Update Button -->
+                <a href="/update" class="btn-neu px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> OTA Update
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+
+        <!-- ==================== PAGE 1: MAIN DASHBOARD ==================== -->
+        <div id="view-dashboard" class="space-y-6">
+
+            <!-- System Status Banner -->
+            <div id="status-banner" class="glass-panel p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div id="banner-icon-bg" class="p-3.5 rounded-2xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400">
+                        <i id="banner-icon" class="fa-solid fa-shield-check text-2xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="banner-title" class="text-lg font-bold text-cyan-700 dark:text-cyan-400">SYSTEM NORMAL</h3>
+                        <p id="banner-desc" class="text-xs text-slate-700 dark:text-slate-300">Continuous upstream & downstream flow monitoring active. No leaks detected.</p>
+                    </div>
+                </div>
+                
+                <!-- Valve Manual Override Controls -->
+                <div id="valve-container" class="flex items-center space-x-1 p-1.5 rounded-xl border transition-colors">
+                    <span class="text-xs font-bold px-2 text-slate-600 dark:text-slate-400">Valve Mode:</span>
+                    <button id="btn-open" onclick="controlValve('open')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition">OPEN</button>
+                    <button id="btn-auto" onclick="controlValve('auto')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition">AUTO</button>
+                    <button id="btn-close" onclick="controlValve('close')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-500 hover:bg-rose-500/10 transition">CLOSE</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Left Panel: System Orb Visualizer & Recalibrate / Time Log Button -->
+                <div class="glass-panel p-6 rounded-2xl flex flex-col items-center justify-between text-center border">
+                    <div class="w-full">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">State Indicator</h2>
+                        <p class="text-xs text-slate-500 mb-6">Autonomous AI & Sensor Health</p>
+                        
+                        <!-- Pulsing Orb Container -->
+                        <div class="w-40 h-40 rounded-full neu-pressed mx-auto p-3 flex items-center justify-center mb-6">
+                            <div id="status-orb" class="w-full h-full rounded-full orb-glow-safe transition-all duration-500 bg-gradient-to-tr from-cyan-400 to-neutral-900 flex items-center justify-center">
+                                <i id="orb-icon" class="fa-solid fa-water text-3xl text-slate-950/80"></i>
+                            </div>
+                        </div>
+                        
+                        <h3 id="orb-status-text" class="text-xl font-extrabold text-cyan-700 dark:text-cyan-400 tracking-wide">STATUS: NORMAL</h3>
+                    </div>
+
+                    <div class="w-full mt-6 pt-6 border-t border-slate-300 dark:border-white/10 space-y-3">
+                        <button onclick="recalibrateSystem()" class="w-full btn-neu text-amber-700 dark:text-amber-400 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 border border-amber-500/20">
+                            <i class="fa-solid fa-rotate"></i> Trigger Sensor Recalibration
+                        </button>
+                        <button onclick="switchView('logs')" class="w-full btn-neu text-purple-700 dark:text-purple-400 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 border border-purple-500/20">
+                            <i class="fa-solid fa-clock-rotate-left"></i> View Sensor Time Logs
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Panels: Zone Telemetry Cards & Chart -->
+                <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Zone 1: Upstream (Flip Card) -->
+                    <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard('zone1-card')">
+                        <div id="zone1-card" class="relative w-full h-full transform-style-3d">
+                            <div class="absolute inset-0 glass-panel p-6 rounded-2xl flex flex-col justify-between backface-hidden border">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">Zone 1 (Upstream Inlet)</span>
+                                        <span class="text-[10px] text-slate-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full">🔄 Click for Baselines</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 my-3">
+                                        <div class="neu-pressed p-4 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Flow Rate</span>
+                                            <span id="f1-val" class="text-2xl font-mono font-extrabold text-slate-900 dark:text-slate-100">--</span>
+                                            <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 ml-1">L/m</span>
+                                        </div>
+                                        <div class="neu-pressed p-4 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Pressure</span>
+                                            <span id="p1-val" class="text-2xl font-mono font-extrabold text-slate-900 dark:text-slate-100">--</span>
+                                            <span class="text-xs font-bold text-cyan-700 dark:text-cyan-400 ml-1">Bar</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex items-center justify-between pt-2 border-t border-slate-300 dark:border-white/10">
+                                    <span>Sensor Pin: GPIO 25</span>
+                                    <span class="text-emerald-700 dark:text-emerald-400 font-bold">Active</span>
+                                </div>
+                            </div>
+                            <div class="absolute inset-0 glass-panel p-6 rounded-2xl flex flex-col justify-between backface-hidden rotate-y-180 border bg-cyan-500/5 dark:bg-cyan-950/20">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs font-extrabold uppercase tracking-wider text-cyan-700 dark:text-cyan-400">Zone 1 Normal Baselines</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-400 mb-3">Expected standard measurements:</p>
+                                    <div class="grid grid-cols-2 gap-4 my-2">
+                                        <div class="neu-pressed p-3 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Avg Flow</span>
+                                            <span class="text-xl font-mono font-extrabold text-cyan-700 dark:text-cyan-400">12.5 - 15.0</span>
+                                        </div>
+                                        <div class="neu-pressed p-3 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Avg Pressure</span>
+                                            <span class="text-xl font-mono font-extrabold text-cyan-700 dark:text-cyan-400">3.2 - 3.8</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-cyan-700 dark:text-cyan-400 flex items-center justify-center pt-2 border-t border-slate-300 dark:border-white/10">
+                                    <span>🔄 Click card to return</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zone 2: Downstream (Flip Card) -->
+                    <div class="perspective-1000 h-64 cursor-pointer" onclick="flipCard('zone2-card')">
+                        <div id="zone2-card" class="relative w-full h-full transform-style-3d">
+                            <div class="absolute inset-0 glass-panel p-6 rounded-2xl flex flex-col justify-between backface-hidden border">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-400">Zone 2 (Downstream Outlet)</span>
+                                        <span class="text-[10px] text-slate-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full">🔄 Click for Baselines</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4 my-3">
+                                        <div class="neu-pressed p-4 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Flow Rate</span>
+                                            <span id="f2-val" class="text-2xl font-mono font-extrabold text-slate-900 dark:text-slate-100">--</span>
+                                            <span class="text-xs font-bold text-purple-700 dark:text-purple-400 ml-1">L/m</span>
+                                        </div>
+                                        <div class="neu-pressed p-4 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Pressure</span>
+                                            <span id="p2-val" class="text-2xl font-mono font-extrabold text-slate-900 dark:text-slate-100">--</span>
+                                            <span class="text-xs font-bold text-purple-700 dark:text-purple-400 ml-1">Bar</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex items-center justify-between pt-2 border-t border-slate-300 dark:border-white/10">
+                                    <span>Sensor Pin: GPIO 26</span>
+                                    <span class="text-emerald-700 dark:text-emerald-400 font-bold">Active</span>
+                                </div>
+                            </div>
+                            <div class="absolute inset-0 glass-panel p-6 rounded-2xl flex flex-col justify-between backface-hidden rotate-y-180 border bg-purple-500/5 dark:bg-purple-950/20">
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-xs font-extrabold uppercase tracking-wider text-purple-700 dark:text-purple-400">Zone 2 Normal Baselines</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 dark:text-slate-400 mb-3">Expected standard measurements:</p>
+                                    <div class="grid grid-cols-2 gap-4 my-2">
+                                        <div class="neu-pressed p-3 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Avg Flow</span>
+                                            <span class="text-xl font-mono font-extrabold text-purple-700 dark:text-purple-400">12.0 - 14.5</span>
+                                        </div>
+                                        <div class="neu-pressed p-3 rounded-xl text-center">
+                                            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider block mb-1">Avg Pressure</span>
+                                            <span class="text-xl font-mono font-extrabold text-purple-700 dark:text-purple-400">2.9 - 3.5</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-purple-700 dark:text-purple-400 flex items-center justify-center pt-2 border-t border-slate-300 dark:border-white/10">
+                                    <span>🔄 Click card to return</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Telemetry Chart Container (Spans 2 columns with 3D Flip) -->
+                    <div class="md:col-span-2 perspective-1000 h-80 cursor-pointer" onclick="flipCard('chart-card')">
+                        <div id="chart-card" class="relative w-full h-full transform-style-3d">
+                            <div class="absolute inset-0 glass-panel p-6 rounded-2xl flex flex-col backface-hidden border">
+                                <div class="flex justify-between items-center mb-4">
+                                    <div class="flex items-center gap-2">
+                                        <h2 class="text-sm font-bold text-slate-900 dark:text-slate-200">Flow Differential & Telemetry Graph</h2>
+                                        <span class="text-[10px] text-slate-500 bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded-full">🔄 Click for AI Summary</span>
+                                    </div>
+                                    <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Sampling Rate: 1s</span>
+                                </div>
+                                <div class="relative flex-1 w-full">
+                                    <canvas id="telemetryChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="absolute inset-0 glass-panel p-6 rounded-2xl flex flex-col justify-between backface-hidden rotate-y-180 border bg-cyan-500/5 dark:bg-cyan-950/20">
+                                <div>
+                                    <div class="flex justify-between items-center mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <span class="p-2 rounded-xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-400"><i class="fa-solid fa-brain"></i></span>
+                                            <h2 class="text-sm font-bold text-cyan-700 dark:text-cyan-400">AI Pipeline Performance Summary (Past 30 Mins)</h2>
+                                        </div>
+                                    </div>
+                                    <div class="neu-pressed p-4 rounded-xl space-y-2 mt-2">
+                                        <p id="ai-summary-text" class="text-xs font-medium text-slate-700 dark:text-slate-300 leading-relaxed">
+                                            <i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Analyzing telemetry logs and flow differential trends over the last 30 minutes...
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] font-semibold text-cyan-700 dark:text-cyan-400 flex items-center justify-between pt-2 border-t border-slate-300 dark:border-white/10">
+                                    <span>🤖 Autonomous AI Diagnostic Engine Active</span>
+                                    <span>🔄 Click card to return to live chart</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== PAGE 2: TIME LOGS DEDICATED VIEW ==================== -->
+        <div id="view-logs" class="hidden space-y-6">
+            <div class="glass-panel p-6 rounded-2xl border space-y-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-300 dark:border-white/10">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchView('dashboard')" class="btn-neu px-3.5 py-2 rounded-xl text-xs font-bold text-cyan-700 dark:text-cyan-400 flex items-center gap-1.5 border">
+                            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                        </button>
+                        <div>
+                            <h2 class="text-lg font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-purple-600 dark:text-purple-400"></i> Sensor Event & Telemetry Time Log
+                            </h2>
+                            <p class="text-xs text-slate-600 dark:text-slate-400">Dedicated chronological history of sensor states, valve commands, and automated system actions.</p>
+                        </div>
+                    </div>
+                    <button onclick="clearTimeLogs()" class="btn-neu text-xs font-semibold px-3.5 py-2 rounded-xl text-rose-600 dark:text-rose-400 border border-rose-500/20">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Clear Logs
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto neu-pressed rounded-xl p-2">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-300 dark:border-white/10 text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                                <th class="p-3">Timestamp</th>
+                                <th class="p-3">Event Type</th>
+                                <th class="p-3">Zone 1 (F1 / P1)</th>
+                                <th class="p-3">Zone 2 (F2 / P2)</th>
+                                <th class="p-3">System Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="time-log-tbody" class="divide-y divide-slate-300/50 dark:divide-white/5 font-mono">
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-slate-500">Initializing telemetry time log stream...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Controller File -->
+    <script src="script.js"></script>
+</body>
+</html>

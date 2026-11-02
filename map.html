@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSense - Mysore 2D Map Explorer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #map {
+            width: 100%;
+            height: calc(100vh - 73px);
+            background: #111;
+        }
+        .dark-tiles {
+            filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+        }
+    </style>
+</head>
+<body class="bg-black text-slate-100 font-sans antialiased">
+
+    <!-- Top Navigation -->
+    <header class="border-b border-white/10 bg-black/85 backdrop-blur-md relative z-50 px-4 py-4 flex justify-between items-center h-[73px]">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white/5 p-2.5 rounded-xl border border-white/10 text-slate-200">
+                <i class="fa-solid fa-map text-xl text-blue-500"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-slate-100">Mysore 2D Top-Down Explorer</h1>
+                <p class="text-xs text-slate-400">Pipeline Network & Topography Layout</p>
+            </div>
+        </div>
+        <a href="index.html" class="btn-neu px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </header>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Map Script -->
+    <script>
+        const map = L.map('map', {
+            zoomControl: false
+        }).setView([12.2958, 76.6551], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        setTimeout(() => {
+            document.querySelectorAll('.leaflet-tile-pane').forEach(el => {
+                el.classList.add('dark-tiles');
+            });
+        }, 200);
+
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        L.marker([12.2778, 76.6713]).addTo(map)
+            .bindPopup("<b>Chamundi Hill</b><br>High Elevation Ridge Landmark");
+
+        L.marker([12.3052, 76.6551]).addTo(map)
+            .bindPopup("<b>Mysore Palace Zone</b><br>Central Distribution Node");
+    </script>
+</body>
+</html>

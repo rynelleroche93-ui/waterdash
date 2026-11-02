@@ -34,11 +34,15 @@ const telemetryChart = new Chart(ctx, {
     }
 });
 
-// Smooth Center-Outward Circular Fill Transition Controller
+// Smooth Center-Outward Circular Fill Transition Controller with Safety Check
 function switchView(viewName) {
-    const overlay = document.getElementById('transition-overlay');
     const dashboardView = document.getElementById('view-dashboard');
     const logsView = document.getElementById('view-logs');
+
+    // If view containers don't exist on this page, let normal link navigation proceed
+    if (!dashboardView || !logsView) return;
+
+    const overlay = document.getElementById('transition-overlay');
     const isDark = document.documentElement.classList.contains('dark');
 
     overlay.style.backgroundColor = isDark ? '#000000' : '#ffffff';
@@ -119,8 +123,8 @@ function clearTimeLogs() {
 // Periodic AI Summary Updater & Time Logger
 let logCounter = 0;
 setInterval(() => {
-    const f1Val = document.getElementById('f1-val').innerText;
-    const f2Val = document.getElementById('f2-val').innerText;
+    const f1Val = document.getElementById('f1-val') ? document.getElementById('f1-val').innerText : "--";
+    const f2Val = document.getElementById('f2-val') ? document.getElementById('f2-val').innerText : "--";
     const summaryEl = document.getElementById('ai-summary-text');
 
     if (f1Val !== "--" && f2Val !== "--") {
@@ -162,6 +166,7 @@ function toggleTheme() {
 
 // Dynamically adjust Chart.js grid & text colors for light/dark mode
 function updateChartTheme(isDark) {
+    if (!window.telemetryChart) return;
     const textColor = isDark ? '#cbd5e1' : '#1f2937';
     const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)';
 
@@ -178,6 +183,8 @@ function controlValve(state) {
     const btnOpen = document.getElementById('btn-open');
     const btnAuto = document.getElementById('btn-auto');
     const btnClose = document.getElementById('btn-close');
+
+    if (!btnOpen) return;
 
     btnOpen.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/10 transition";
     btnAuto.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition";
@@ -210,6 +217,8 @@ function recalibrateSystem() {
 // Periodic Data Fetch Loop from ESP32 (/api/data)
 let failCount = 0;
 setInterval(() => {
+    if (!document.getElementById('f1-val')) return;
+
     fetch('/api/data')
         .then(res => res.json())
         .then(data => {
@@ -244,6 +253,8 @@ function updateConnectionStatus(isConnected) {
     const badge = document.getElementById('conn-badge');
     const dot = document.getElementById('conn-dot');
     const text = document.getElementById('conn-text');
+    if (!badge) return;
+
     if(isConnected) {
         badge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-semibold";
         dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
@@ -264,6 +275,8 @@ function updateSystemStateUI(status) {
     const orbIcon = document.getElementById('orb-icon');
     const orbText = document.getElementById('orb-status-text');
 
+    if (!banner) return;
+
     if (status.includes("LEAK")) {
         banner.className = "glass-panel p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-4 bg-blue-500/10";
         bannerIconBg.className = "p-3.5 rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400";
@@ -272,7 +285,6 @@ function updateSystemStateUI(status) {
         bannerTitle.innerText = "!! LEAK DETECTED ! Shut-off Valve Engaged";
         bannerDesc.innerText = "Significant flow loss differential identified between Zone 1 and Zone 2. System secured automatically.";
         
-        // Warning Blue Splash Icon (Borderless)
         orbIcon.className = "fa-solid fa-water text-7xl text-sky-400 drop-shadow-[0_0_25px_rgba(56,189,248,0.8)] animate-bounce";
         orbText.className = "text-xl font-extrabold text-blue-600 dark:text-blue-400 tracking-wide";
         orbText.innerText = "LEAK DETECTED";
@@ -309,7 +321,6 @@ function updateSystemStateUI(status) {
         bannerTitle.innerText = "SYSTEM NORMAL";
         bannerDesc.innerText = "Continuous upstream & downstream flow monitoring active. No leaks detected.";
         
-        // Normal Blue Water Drop Icon (Borderless)
         orbIcon.className = "fa-solid fa-droplet text-7xl text-blue-500 drop-shadow-[0_0_20px_rgba(59,130,246,0.6)] animate-pulse";
         orbText.className = "text-xl font-extrabold text-cyan-700 dark:text-cyan-400 tracking-wide";
         orbText.innerText = "STATUS: NORMAL";
